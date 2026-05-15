@@ -81,7 +81,7 @@ Temporary Items
 *.iml
 *.ipr
 *.iws
-/.idea/*
+/.idea
 
 # Exclude non-user-specific stuff
 !.idea/.name
