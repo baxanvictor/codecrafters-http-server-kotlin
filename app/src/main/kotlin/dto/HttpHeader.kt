@@ -6,4 +6,5 @@ object HttpHeader {
     const val USER_AGENT = "User-Agent"
     const val ACCEPT_ENCODING = "Accept-Encoding"
     const val CONTENT_ENCODING = "Content-Encoding"
+    const val CONNECTION = "Connection"
 }

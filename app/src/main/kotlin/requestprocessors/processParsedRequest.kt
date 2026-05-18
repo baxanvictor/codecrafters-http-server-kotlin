@@ -1,10 +1,6 @@
 package requestprocessors
 
-import dto.HttpVersion
-import dto.ParsedArg
-import dto.RequestMethod
-import dto.RequestStartLine
-import dto.RequestTarget
+import dto.*
 import requestprocessors.endpoints.processGetEndpoint
 import requestprocessors.endpoints.processPostEndpoint
 import utils.Constants
@@ -22,7 +18,8 @@ fun BufferedWriter.processParsedRequest(
 ) {
     if (requestStartLine == null) {
         writeBadRequestError(
-            httpVersion = Constants.HttpVersion1_1
+            httpVersion = Constants.HttpVersion1_1,
+            requestHeaders = requestHeaders
         )
         return
     }
@@ -39,6 +36,7 @@ fun BufferedWriter.processParsedRequest(
         if (path == "/") {
             writeOk(
                 httpVersion = httpVersion,
+                requestHeaders = requestHeaders
             )
         } else {
             processEndpoint(

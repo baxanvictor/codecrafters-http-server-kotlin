@@ -1,6 +1,8 @@
+import dto.HttpHeader
 import dto.ParsedArg
 import kotlinx.cli.ArgParser
 import requestprocessors.*
+import utils.Constants
 import utils.parseCommandLineArgs
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -43,7 +45,7 @@ private fun processClientConnection(
             val writer = outputStream.bufferedWriter()
 
             while (true) {
-                handleClientRequest(
+                client.handleClientRequest(
                     reader = reader,
                     outputStream = outputStream,
                     writer = writer,
@@ -54,7 +56,7 @@ private fun processClientConnection(
     }.start()
 }
 
-private fun handleClientRequest(
+private fun Socket.handleClientRequest(
     reader: BufferedReader,
     outputStream: OutputStream,
     writer: BufferedWriter,
@@ -79,5 +81,15 @@ private fun handleClientRequest(
             requestHeaders = requestHeaders,
             requestBody = body
         )
+
+        maybeCloseConnection(requestHeaders)
+    }
+}
+
+private fun Socket.maybeCloseConnection(requestHeaders: Map<String, String>) {
+    val connectionHeader = requestHeaders[HttpHeader.CONNECTION] ?: return
+
+    when (connectionHeader) {
+        Constants.CLOSE -> close()
     }
 }

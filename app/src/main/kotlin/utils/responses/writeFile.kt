@@ -11,13 +11,15 @@ import kotlin.io.path.readBytes
 fun BufferedWriter.writeFile(
     file: Path,
     outputStream: OutputStream,
-    httpVersion: HttpVersion
+    httpVersion: HttpVersion,
+    requestHeders: Map<String, String> = emptyMap()
 ) {
     val bytes = file.readBytes()
 
     writeOk(
         httpVersion = httpVersion,
-        headers = mapOf(
+        requestHeaders = requestHeders,
+        responseHeaders = mapOf(
             HttpHeader.CONTENT_TYPE to Constants.APPLICATION_OCTET_STREAM,
             HttpHeader.CONTENT_LENGTH to bytes.size.toString()
         ),

@@ -21,7 +21,8 @@ fun BufferedWriter.processPostFileEndpoint(
     if (contentLength == null) {
         writeBadRequestError(
             httpVersion = httpVersion,
-            message = "${HttpHeader.CONTENT_LENGTH} header is missing or has an invalid value"
+            requestHeaders = requestHeaders,
+            message = "${HttpHeader.CONTENT_LENGTH} header is missing or has an invalid value",
         )
         return
     }
@@ -31,12 +32,16 @@ fun BufferedWriter.processPostFileEndpoint(
     }.getOrElse { exception ->
         writeBadRequestError(
             httpVersion = httpVersion,
-            message = exception.message ?: Constants.DEFAULT_BAD_REQUEST_MESSAGE
+            requestHeaders = requestHeaders,
+            message = exception.message ?: Constants.DEFAULT_BAD_REQUEST_MESSAGE,
         )
         null
     } ?: return
 
     Files.write(fsFile, body.toByteArray())
 
-    writeCreated(httpVersion = httpVersion)
+    writeCreated(
+        httpVersion = httpVersion,
+        requestHeaders = requestHeaders
+    )
 }

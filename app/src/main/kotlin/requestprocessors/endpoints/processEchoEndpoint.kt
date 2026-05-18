@@ -5,6 +5,7 @@ import dto.HttpHeader
 import dto.HttpVersion
 import utils.Constants
 import utils.compress
+import utils.responses.writeInternalServerError
 import utils.responses.writeNotFoundError
 import utils.responses.writeOkBytes
 import java.io.BufferedWriter
@@ -14,12 +15,13 @@ fun BufferedWriter.processEchoEndpoint(
     outputStream: OutputStream,
     path: String,
     httpVersion: HttpVersion,
-    requestHeaders: Map<String, String>
+    requestHeaders: Map<String, String>,
 ) {
     val pathSuffix = path.split('/').last()
     if (pathSuffix.isEmpty()) {
         writeNotFoundError(
-            httpVersion = httpVersion
+            httpVersion = httpVersion,
+            requestHeaders = requestHeaders
         )
     } else {
         val acceptEncoding = requestHeaders[HttpHeader.ACCEPT_ENCODING]
@@ -30,9 +32,17 @@ fun BufferedWriter.processEchoEndpoint(
                 CompressionScheme.findByScheme(encoding.trim())
             }
 
-        val compressedMessage = compressionScheme?.let {
-            pathSuffix.compress(it)
-        } ?: pathSuffix.toByteArray()
+        val compressedMessage = runCatching {
+            compressionScheme?.let {
+                pathSuffix.compress(it)
+            } ?: pathSuffix.toByteArray()
+        }.getOrElse {
+            writeInternalServerError(
+                httpVersion = httpVersion,
+                requestHeaders = requestHeaders
+            )
+            null
+        } ?: return
 
         val responseHeaders = buildMap {
             put(HttpHeader.CONTENT_TYPE, Constants.TEXT_PLAIN)
@@ -45,7 +55,8 @@ fun BufferedWriter.processEchoEndpoint(
         writeOkBytes(
             outputStream = outputStream,
             httpVersion = httpVersion,
-            headers = responseHeaders,
+            requestHeaders = requestHeaders,
+            responseHeaders = responseHeaders,
             body = compressedMessage
         )
     }

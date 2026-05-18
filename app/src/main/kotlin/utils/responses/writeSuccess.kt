@@ -8,14 +8,16 @@ import java.io.OutputStream
 fun BufferedWriter.writeOk(
     httpVersion: HttpVersion,
     message: String = "OK",
-    headers: Map<String, String> = emptyMap(),
+    requestHeaders: Map<String, String> = emptyMap(),
+    responseHeaders: Map<String, String> = emptyMap(),
     body: String? = null
 ) {
     writeMessage(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.OK,
         message = message,
-        headers = headers,
+        requestHeaders = requestHeaders,
+        responseHeaders = responseHeaders,
         body = body
     )
 }
@@ -24,7 +26,8 @@ fun BufferedWriter.writeOkBytes(
     outputStream: OutputStream,
     httpVersion: HttpVersion,
     message: String = "OK",
-    headers: Map<String, String> = emptyMap(),
+    requestHeaders: Map<String, String> = emptyMap(),
+    responseHeaders: Map<String, String> = emptyMap(),
     body: ByteArray
 ) {
     writeBytes(
@@ -32,7 +35,8 @@ fun BufferedWriter.writeOkBytes(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.OK,
         message = message,
-        headers = headers,
+        requestHeaders = requestHeaders,
+        responseHeaders = responseHeaders,
         body = body
     )
 }
@@ -40,12 +44,14 @@ fun BufferedWriter.writeOkBytes(
 fun BufferedWriter.writeCreated(
     httpVersion: HttpVersion,
     message: String = "Created",
-    headers: Map<String, String> = emptyMap(),
+    requestHeaders: Map<String, String> = emptyMap(),
+    responseHeaders: Map<String, String> = emptyMap(),
 ) {
     writeMessage(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.CREATED,
         message = message,
-        headers = headers,
+        requestHeaders = requestHeaders,
+        responseHeaders = responseHeaders,
     )
 }

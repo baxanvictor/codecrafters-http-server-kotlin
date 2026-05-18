@@ -17,7 +17,8 @@ fun BufferedWriter.processPostEndpoint(
     if (body == null) {
         writeBadRequestError(
             httpVersion = httpVersion,
-            message = "POST request body missing"
+            requestHeaders = requestHeaders,
+            message = "POST request body missing",
         )
         return
     }
@@ -30,9 +31,11 @@ fun BufferedWriter.processPostEndpoint(
             requestHeaders = requestHeaders,
             body = body
         )
+
         else -> {
             writeNotFoundError(
-                httpVersion = httpVersion
+                httpVersion = httpVersion,
+                responseHeaders = requestHeaders
             )
         }
     }
