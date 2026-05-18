@@ -33,3 +33,11 @@ fun BufferedWriter.writeBadRequestError(
         body = body
     )
 }
+
+fun BufferedWriter.writeInternalServerError(httpVersion: HttpVersion) {
+    writeMessage(
+        httpVersion = httpVersion,
+        statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR,
+        message = "Internal server error"
+    )
+}

@@ -4,11 +4,14 @@ import dto.CompressionScheme
 import dto.HttpHeader
 import dto.HttpVersion
 import utils.Constants
+import utils.compress
 import utils.responses.writeNotFoundError
-import utils.responses.writeOk
+import utils.responses.writeOkBytes
 import java.io.BufferedWriter
+import java.io.OutputStream
 
 fun BufferedWriter.processEchoEndpoint(
+    outputStream: OutputStream,
     path: String,
     httpVersion: HttpVersion,
     requestHeaders: Map<String, String>
@@ -21,27 +24,29 @@ fun BufferedWriter.processEchoEndpoint(
     } else {
         val acceptEncoding = requestHeaders[HttpHeader.ACCEPT_ENCODING]
 
-        val contentEncodingHeader = acceptEncoding
+        val compressionScheme = acceptEncoding
             ?.split(",")
-            ?.mapNotNull { encoding ->
-                CompressionScheme
-                    .findByScheme(encoding.trim())
-                    ?.scheme
+            ?.firstNotNullOfOrNull { encoding ->
+                CompressionScheme.findByScheme(encoding.trim())
             }
-            ?.joinToString(", ")
+
+        val compressedMessage = compressionScheme?.let {
+            pathSuffix.compress(it)
+        } ?: pathSuffix.toByteArray()
 
         val responseHeaders = buildMap {
             put(HttpHeader.CONTENT_TYPE, Constants.TEXT_PLAIN)
-            put(HttpHeader.CONTENT_LENGTH, pathSuffix.length.toString())
-            contentEncodingHeader?.let {
-                put(HttpHeader.CONTENT_ENCODING, it)
+            put(HttpHeader.CONTENT_LENGTH, compressedMessage.size.toString())
+            compressionScheme?.let {
+                put(HttpHeader.CONTENT_ENCODING, compressionScheme.scheme)
             }
         }
 
-        writeOk(
+        writeOkBytes(
+            outputStream = outputStream,
             httpVersion = httpVersion,
             headers = responseHeaders,
-            body = pathSuffix
+            body = compressedMessage
         )
     }
 }

@@ -15,7 +15,7 @@ fun BufferedWriter.processGetEndpoint(
     requestHeaders: Map<String, String>
 ) {
     when {
-        path.startsWith(Constants.ECHO_ENDPOINT) -> processEchoEndpoint(path, httpVersion, requestHeaders)
+        path.startsWith(Constants.ECHO_ENDPOINT) -> processEchoEndpoint(outputStream, path, httpVersion, requestHeaders)
         path == Constants.USER_AGENT_ENDPOINT -> processUserAgentEndpoint(httpVersion, requestHeaders)
         path.startsWith(Constants.FILES_ENDPOINT) -> processGetFileEndpoint(
             args = args,
