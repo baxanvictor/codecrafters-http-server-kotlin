@@ -1,48 +1,83 @@
+import dto.ParsedArg
 import kotlinx.cli.ArgParser
 import requestprocessors.*
 import utils.parseCommandLineArgs
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.OutputStream
 import java.net.ServerSocket
+import java.net.Socket
 
 fun main(args: Array<String>) {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println("Logs from your program will appear here!")
 
+    startServer(args)
+}
+
+private fun startServer(args: Array<String>) {
     ServerSocket(4221).use { server ->
         // Since the tester restarts your program quite often, setting SO_REUSEADDR
         // ensures that we don't run into 'Address already in use' errors
         server.reuseAddress = true
 
+        val argsParser = ArgParser("codecrafters-http-server")
+        val parsedArgs = argsParser.parseCommandLineArgs(args)
+
         while (true) {
             val client = server.accept()
-
-            Thread {
-                client.use { socket ->
-                    val argsParser = ArgParser("codecrafters-http-server")
-                    val parsedArgs = argsParser.parseCommandLineArgs(args)
-
-                    val reader = socket.getInputStream().bufferedReader()
-
-                    val requestStartLine = parseRequestStartLine(
-                        startLine = reader.readRequestStartLine()
-                    )
-                    val requestHeaders = parseRequestHeaders(
-                        headerLines = reader.readRequestHeaderLines()
-                    )
-
-                    val body = reader.parseRequestBody(requestHeaders)
-
-                    val outputStream = socket.getOutputStream()
-                    val writer = outputStream.bufferedWriter()
-
-                    writer.processParsedRequest(
-                        args = parsedArgs,
-                        outputStream = outputStream,
-                        requestStartLine = requestStartLine,
-                        requestHeaders = requestHeaders,
-                        requestBody = body
-                    )
-                }
-            }.start()
+            processClientConnection(client, parsedArgs)
         }
+    }
+}
+
+private fun processClientConnection(
+    client: Socket,
+    args: Set<ParsedArg>
+) {
+    Thread {
+        client.use { socket ->
+            val reader = socket.getInputStream().bufferedReader()
+
+            val outputStream = socket.getOutputStream()
+            val writer = outputStream.bufferedWriter()
+
+            while (true) {
+                handleClientRequest(
+                    reader = reader,
+                    outputStream = outputStream,
+                    writer = writer,
+                    args = args
+                )
+            }
+        }
+    }.start()
+}
+
+private fun handleClientRequest(
+    reader: BufferedReader,
+    outputStream: OutputStream,
+    writer: BufferedWriter,
+    args: Set<ParsedArg>
+) {
+    runCatching {
+        val startLine = reader.readRequestStartLine() ?: return@runCatching
+
+        val requestStartLine = parseRequestStartLine(
+            startLine = startLine
+        )
+        val requestHeaders = parseRequestHeaders(
+            headerLines = reader.readRequestHeaderLines()
+        )
+
+        val body = reader.parseRequestBody(requestHeaders)
+
+        writer.processParsedRequest(
+            args = args,
+            outputStream = outputStream,
+            requestStartLine = requestStartLine,
+            requestHeaders = requestHeaders,
+            requestBody = body
+        )
     }
 }
