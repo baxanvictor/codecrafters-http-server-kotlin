@@ -9,4 +9,6 @@ object Constants {
     const val ACCEPT = "Accept"
 
     val HttpVersion1_1 = HttpVersion(1, 1)
+
+    val TEXT_PLAIN = "text/plain"
 }

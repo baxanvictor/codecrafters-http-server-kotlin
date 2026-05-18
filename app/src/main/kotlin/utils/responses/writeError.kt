@@ -4,18 +4,30 @@ import dto.HttpStatusCode
 import dto.HttpVersion
 import java.io.BufferedWriter
 
-fun BufferedWriter.writeNotFoundError(httpVersion: HttpVersion) {
+fun BufferedWriter.writeNotFoundError(
+    httpVersion: HttpVersion,
+    headers: Map<String, String> = emptyMap(),
+    body: String? = null
+) {
     writeMessage(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.NOT_FOUND,
-        message = "Not Found"
+        message = "Not Found",
+        headers = headers,
+        body = body
     )
 }
 
-fun BufferedWriter.writeBadRequestError(httpVersion: HttpVersion) {
+fun BufferedWriter.writeBadRequestError(
+    httpVersion: HttpVersion,
+    headers: Map<String, String> = emptyMap(),
+    body: String? = null
+) {
     writeMessage(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.BAD_REQUEST,
-        message = "The request is invalid"
+        message = "The request is invalid",
+        headers = headers,
+        body = body
     )
 }

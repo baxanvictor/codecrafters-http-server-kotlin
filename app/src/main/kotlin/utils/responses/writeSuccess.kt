@@ -6,11 +6,15 @@ import java.io.BufferedWriter
 
 fun BufferedWriter.writeOk(
     httpVersion: HttpVersion,
-    message: String = "OK"
+    message: String = "OK",
+    headers: Map<String, String> = emptyMap(),
+    body: String? = null
 ) {
     writeMessage(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.OK,
-        message = message
+        message = message,
+        headers = headers,
+        body = body
     )
 }

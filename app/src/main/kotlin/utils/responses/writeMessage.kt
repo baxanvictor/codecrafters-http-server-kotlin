@@ -9,18 +9,22 @@ import java.io.BufferedWriter
 fun BufferedWriter.writeMessage(
     httpVersion: HttpVersion,
     statusCode: HttpStatusCode,
-    message: String
+    message: String,
+    headers: Map<String, String>,
+    body: String?
 ) {
-    val output = buildString {
+    val statusLine = buildString {
         append(httpVersion.formatted())
         append(' ')
         append(statusCode.code)
         append(' ')
         append(message)
         append(Constants.CRLF)
-        append(Constants.CRLF)
     }
 
-    write(output)
+    write(statusLine)
+    writeHeaders(headers)
+    write(Constants.CRLF)
+    body?.let { write(it) }
     flush()
 }
