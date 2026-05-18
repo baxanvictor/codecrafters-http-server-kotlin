@@ -21,12 +21,13 @@ fun BufferedWriter.writeNotFoundError(
 fun BufferedWriter.writeBadRequestError(
     httpVersion: HttpVersion,
     headers: Map<String, String> = emptyMap(),
+    message: String = "The request is invalid",
     body: String? = null
 ) {
     writeMessage(
         httpVersion = httpVersion,
         statusCode = HttpStatusCode.BAD_REQUEST,
-        message = "The request is invalid",
+        message = message,
         headers = headers,
         body = body
     )

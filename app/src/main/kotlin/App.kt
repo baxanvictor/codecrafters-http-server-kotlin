@@ -1,5 +1,8 @@
+import requestprocessors.parseRequestHeaders
 import requestprocessors.parseRequestStartLine
 import requestprocessors.processParsedRequest
+import requestprocessors.readRequestHeaderLines
+import requestprocessors.readRequestStartLine
 import java.net.ServerSocket
 
 fun main() {
@@ -17,13 +20,18 @@ fun main() {
             Thread {
                 client.use { socket ->
                     val reader = socket.getInputStream().bufferedReader()
+
                     val requestStartLine = parseRequestStartLine(
-                        startLine = reader.readLine().trim()
+                        startLine = reader.readRequestStartLine()
+                    )
+                    val requestHeaders = parseRequestHeaders(
+                        headerLines = reader.readRequestHeaderLines()
                     )
 
                     val writer = socket.getOutputStream().bufferedWriter()
                     writer.processParsedRequest(
-                        requestStartLine = requestStartLine
+                        requestStartLine = requestStartLine,
+                        requestHeaders = requestHeaders
                     )
                 }
             }.start()
