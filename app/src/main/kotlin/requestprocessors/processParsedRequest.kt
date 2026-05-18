@@ -1,16 +1,22 @@
 package requestprocessors
 
-import dto.HttpHeader
 import dto.HttpVersion
+import dto.ParsedArg
 import dto.RequestStartLine
 import dto.RequestTarget
+import requestprocessors.endpoints.processEchoEndpoint
+import requestprocessors.endpoints.processFilesEndpoint
+import requestprocessors.endpoints.processUserAgentEndpoint
 import utils.Constants
 import utils.responses.writeBadRequestError
 import utils.responses.writeNotFoundError
 import utils.responses.writeOk
 import java.io.BufferedWriter
+import java.io.OutputStream
 
 fun BufferedWriter.processParsedRequest(
+    args: Set<ParsedArg>,
+    outputStream: OutputStream,
     requestStartLine: RequestStartLine?,
     requestHeaders: Map<String, String>
 ) {
@@ -35,19 +41,33 @@ fun BufferedWriter.processParsedRequest(
                 httpVersion = httpVersion,
             )
         } else {
-            processEndpoint(path, httpVersion, requestHeaders)
+            processEndpoint(
+                args = args,
+                outputStream = outputStream,
+                path = path,
+                httpVersion = httpVersion,
+                requestHeaders = requestHeaders
+            )
         }
     }
 }
 
 fun BufferedWriter.processEndpoint(
+    args: Set<ParsedArg>,
+    outputStream: OutputStream,
     path: String,
     httpVersion: HttpVersion,
     requestHeaders: Map<String, String>
 ) {
     when {
-        path.startsWith("/echo/") -> processEchoPath(path, httpVersion)
+        path.startsWith("/echo/") -> processEchoEndpoint(path, httpVersion)
         path == "/user-agent" -> processUserAgentEndpoint(httpVersion, requestHeaders)
+        path.startsWith("/files/") -> processFilesEndpoint(
+            args = args,
+            outputStream = outputStream,
+            path = path,
+            httpVersion = httpVersion
+        )
         else -> {
             writeNotFoundError(
                 httpVersion = httpVersion
@@ -56,48 +76,3 @@ fun BufferedWriter.processEndpoint(
     }
 }
 
-fun BufferedWriter.processEchoPath(
-    path: String,
-    httpVersion: HttpVersion
-) {
-    val pathSuffix = path.split('/').last()
-    if (pathSuffix.isEmpty()) {
-        writeNotFoundError(
-            httpVersion = httpVersion
-        )
-    } else {
-        val headers = mapOf(
-            HttpHeader.CONTENT_TYPE to Constants.TEXT_PLAIN,
-            HttpHeader.CONTENT_LENGTH to pathSuffix.length.toString()
-        )
-
-        writeOk(
-            httpVersion = httpVersion,
-            headers = headers,
-            body = pathSuffix
-        )
-    }
-}
-
-fun BufferedWriter.processUserAgentEndpoint(
-    httpVersion: HttpVersion,
-    requestHeaders: Map<String, String>
-) {
-    val userAgent = requestHeaders[HttpHeader.USER_AGENT]
-    if (userAgent == null) {
-        writeBadRequestError(
-            httpVersion = httpVersion,
-            message = "The User-Agent header is missing"
-        )
-        return
-    }
-
-    writeOk(
-        httpVersion = httpVersion,
-        headers = mapOf(
-            HttpHeader.CONTENT_TYPE to Constants.TEXT_PLAIN,
-            HttpHeader.CONTENT_LENGTH to userAgent.length.toString()
-        ),
-        body = userAgent
-    )
-}

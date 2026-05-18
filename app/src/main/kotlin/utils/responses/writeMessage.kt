@@ -2,7 +2,6 @@ package utils.responses
 
 import dto.HttpStatusCode
 import dto.HttpVersion
-import mappers.formatted
 import utils.Constants
 import java.io.BufferedWriter
 
@@ -13,16 +12,7 @@ fun BufferedWriter.writeMessage(
     headers: Map<String, String>,
     body: String?
 ) {
-    val statusLine = buildString {
-        append(httpVersion.formatted())
-        append(' ')
-        append(statusCode.code)
-        append(' ')
-        append(message)
-        append(Constants.CRLF)
-    }
-
-    write(statusLine)
+    write(buildResponseStatusLine(httpVersion, statusCode, message))
     writeHeaders(headers)
     write(Constants.CRLF)
     body?.let { write(it) }

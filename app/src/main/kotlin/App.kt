@@ -1,11 +1,14 @@
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
 import requestprocessors.parseRequestHeaders
 import requestprocessors.parseRequestStartLine
 import requestprocessors.processParsedRequest
 import requestprocessors.readRequestHeaderLines
 import requestprocessors.readRequestStartLine
+import utils.parseCommandLineArgs
 import java.net.ServerSocket
 
-fun main() {
+fun main(args: Array<String>) {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println("Logs from your program will appear here!")
 
@@ -28,8 +31,14 @@ fun main() {
                         headerLines = reader.readRequestHeaderLines()
                     )
 
-                    val writer = socket.getOutputStream().bufferedWriter()
+                    val argsParser = ArgParser("codecrafters-http-server")
+                    val parsedArgs = argsParser.parseCommandLineArgs(args)
+
+                    val outputStream = socket.getOutputStream()
+                    val writer = outputStream.bufferedWriter()
                     writer.processParsedRequest(
+                        args = parsedArgs,
+                        outputStream = outputStream,
                         requestStartLine = requestStartLine,
                         requestHeaders = requestHeaders
                     )
