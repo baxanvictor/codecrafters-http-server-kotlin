@@ -21,15 +21,20 @@ fun BufferedWriter.processEchoEndpoint(
     } else {
         val acceptEncoding = requestHeaders[HttpHeader.ACCEPT_ENCODING]
 
-        val contentEncodingHeader = acceptEncoding?.let {
-            CompressionScheme.findByScheme(acceptEncoding)
-        }
+        val contentEncodingHeader = acceptEncoding
+            ?.split(",")
+            ?.mapNotNull { encoding ->
+                CompressionScheme
+                    .findByScheme(encoding.trim())
+                    ?.scheme
+            }
+            ?.joinToString(", ")
 
         val responseHeaders = buildMap {
             put(HttpHeader.CONTENT_TYPE, Constants.TEXT_PLAIN)
             put(HttpHeader.CONTENT_LENGTH, pathSuffix.length.toString())
             contentEncodingHeader?.let {
-                put(HttpHeader.CONTENT_ENCODING, it.scheme)
+                put(HttpHeader.CONTENT_ENCODING, it)
             }
         }
 
