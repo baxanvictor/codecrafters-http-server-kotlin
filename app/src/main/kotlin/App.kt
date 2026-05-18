@@ -1,4 +1,6 @@
-import java.net.ServerSocket;
+import requestprocessors.parseRequestStartLine
+import requestprocessors.processParsedRequest
+import java.net.ServerSocket
 
 fun main() {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -14,13 +16,15 @@ fun main() {
 
             Thread {
                 client.use { socket ->
-                    val writer = socket.getOutputStream().bufferedWriter()
-                    val message = "HTTP/1.1 200 OK\r\n\r\n"
+                    val reader = socket.getInputStream().bufferedReader()
+                    val requestStartLine = parseRequestStartLine(
+                        startLine = reader.readLine().trim()
+                    )
 
-                    writer.run {
-                        write(message)
-                        flush()
-                    }
+                    val writer = socket.getOutputStream().bufferedWriter()
+                    writer.processParsedRequest(
+                        requestStartLine = requestStartLine
+                    )
                 }
             }.start()
         }
