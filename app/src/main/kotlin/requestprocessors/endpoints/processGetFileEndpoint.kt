@@ -2,36 +2,31 @@ package requestprocessors.endpoints
 
 import dto.HttpVersion
 import dto.ParsedArg
-import dto.ParsedArgType
+import requestprocessors.filePathFromPathAndArgs
+import utils.Constants
 import utils.responses.writeBadRequestError
 import utils.responses.writeFile
 import utils.responses.writeNotFoundError
 import java.io.BufferedWriter
 import java.io.OutputStream
-import java.nio.file.Path
 import kotlin.io.path.exists
 
-fun BufferedWriter.processFilesEndpoint(
+fun BufferedWriter.processGetFileEndpoint(
     args: Set<ParsedArg>,
     outputStream: OutputStream,
     path: String,
     httpVersion: HttpVersion,
 ) {
-    val dir = args
-        .find { it.type == ParsedArgType.DIRECTORY }
-        ?.value
-        ?: return
-
-    val filename = path.split('/').lastOrNull()
-    if (filename.isNullOrEmpty()) {
+    val fsFile = runCatching {
+        filePathFromPathAndArgs(args, path)
+    }.getOrElse { exception ->
         writeBadRequestError(
             httpVersion = httpVersion,
-            message = "No filename specified"
+            message = exception.message ?: Constants.DEFAULT_BAD_REQUEST_MESSAGE
         )
-        return
-    }
+        null
+    } ?: return
 
-    val fsFile = Path.of("$dir/$filename")
     if (!fsFile.exists()) {
         writeNotFoundError(httpVersion = httpVersion)
         return

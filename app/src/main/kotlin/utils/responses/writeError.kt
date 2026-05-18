@@ -2,6 +2,7 @@ package utils.responses
 
 import dto.HttpStatusCode
 import dto.HttpVersion
+import utils.Constants
 import java.io.BufferedWriter
 
 fun BufferedWriter.writeNotFoundError(
@@ -21,7 +22,7 @@ fun BufferedWriter.writeNotFoundError(
 fun BufferedWriter.writeBadRequestError(
     httpVersion: HttpVersion,
     headers: Map<String, String> = emptyMap(),
-    message: String = "The request is invalid",
+    message: String = Constants.DEFAULT_BAD_REQUEST_MESSAGE,
     body: String? = null
 ) {
     writeMessage(

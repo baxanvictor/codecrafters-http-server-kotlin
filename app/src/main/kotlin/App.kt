@@ -1,10 +1,5 @@
 import kotlinx.cli.ArgParser
-import kotlinx.cli.ArgType
-import requestprocessors.parseRequestHeaders
-import requestprocessors.parseRequestStartLine
-import requestprocessors.processParsedRequest
-import requestprocessors.readRequestHeaderLines
-import requestprocessors.readRequestStartLine
+import requestprocessors.*
 import utils.parseCommandLineArgs
 import java.net.ServerSocket
 
@@ -22,6 +17,9 @@ fun main(args: Array<String>) {
 
             Thread {
                 client.use { socket ->
+                    val argsParser = ArgParser("codecrafters-http-server")
+                    val parsedArgs = argsParser.parseCommandLineArgs(args)
+
                     val reader = socket.getInputStream().bufferedReader()
 
                     val requestStartLine = parseRequestStartLine(
@@ -31,16 +29,17 @@ fun main(args: Array<String>) {
                         headerLines = reader.readRequestHeaderLines()
                     )
 
-                    val argsParser = ArgParser("codecrafters-http-server")
-                    val parsedArgs = argsParser.parseCommandLineArgs(args)
+                    val body = reader.parseRequestBody(requestHeaders)
 
                     val outputStream = socket.getOutputStream()
                     val writer = outputStream.bufferedWriter()
+
                     writer.processParsedRequest(
                         args = parsedArgs,
                         outputStream = outputStream,
                         requestStartLine = requestStartLine,
-                        requestHeaders = requestHeaders
+                        requestHeaders = requestHeaders,
+                        requestBody = body
                     )
                 }
             }.start()

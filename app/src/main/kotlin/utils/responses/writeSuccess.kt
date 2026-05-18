@@ -18,3 +18,18 @@ fun BufferedWriter.writeOk(
         body = body
     )
 }
+
+fun BufferedWriter.writeCreated(
+    httpVersion: HttpVersion,
+    message: String = "Created",
+    headers: Map<String, String> = emptyMap(),
+    body: String? = null
+) {
+    writeMessage(
+        httpVersion = httpVersion,
+        statusCode = HttpStatusCode.CREATED,
+        message = message,
+        headers = headers,
+        body = body
+    )
+}
