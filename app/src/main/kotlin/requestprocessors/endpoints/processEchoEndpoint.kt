@@ -1,5 +1,6 @@
 package requestprocessors.endpoints
 
+import dto.CompressionScheme
 import dto.HttpHeader
 import dto.HttpVersion
 import utils.Constants
@@ -9,7 +10,8 @@ import java.io.BufferedWriter
 
 fun BufferedWriter.processEchoEndpoint(
     path: String,
-    httpVersion: HttpVersion
+    httpVersion: HttpVersion,
+    requestHeaders: Map<String, String>
 ) {
     val pathSuffix = path.split('/').last()
     if (pathSuffix.isEmpty()) {
@@ -17,14 +19,23 @@ fun BufferedWriter.processEchoEndpoint(
             httpVersion = httpVersion
         )
     } else {
-        val headers = mapOf(
-            HttpHeader.CONTENT_TYPE to Constants.TEXT_PLAIN,
-            HttpHeader.CONTENT_LENGTH to pathSuffix.length.toString()
-        )
+        val acceptEncoding = requestHeaders[HttpHeader.ACCEPT_ENCODING]
+
+        val contentEncodingHeader = acceptEncoding?.let {
+            CompressionScheme.findByScheme(acceptEncoding)
+        }
+
+        val responseHeaders = buildMap {
+            put(HttpHeader.CONTENT_TYPE, Constants.TEXT_PLAIN)
+            put(HttpHeader.CONTENT_LENGTH, pathSuffix.length.toString())
+            contentEncodingHeader?.let {
+                put(HttpHeader.CONTENT_ENCODING, it.scheme)
+            }
+        }
 
         writeOk(
             httpVersion = httpVersion,
-            headers = headers,
+            headers = responseHeaders,
             body = pathSuffix
         )
     }
